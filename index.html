@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div id="add-item" class="container d-none" >
+            <form>
+                <div class="form-group">
+                    <label for="image">Image</label>
+                    <button id="imageButton" class="btn">Select Image</button>
+                </div>
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control" id="name" autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" class="form-control" id="description">
+                </div>
+                <button id="saveButton" class="btn" type="submit">Save</button>
+            </form>
+        </div>
+        <button id="addButton" type="button" class="btn btn-info btn-circle btn-lg bottom-right">+</button>
+    </div>
+    <script>
+        const electron = require('electron');
+        const {ipcRenderer, session} = electron;
+        const {dialog} = require('electron').remote;
+        const table = document.querySelector('table').getElementsByTagName('tbody')[0];
+        const formContatiner = document.getElementById('add-item');
+        const addButton = document.getElementById('addButton');
+        const delButton = document.getElementById('delButton');
+        
+        console.log("Reloaded");
+        
+        document.getElementById('imageButton').addEventListener('click', function (event) {
+            dialog.showOpenDialog(function (file) {
+                if (file !== undefined) {
+                    console.log(file);
+                }
+            });
+        });
+        
+        addButton.addEventListener("click", function(){
+            console.log("Form Button")
+            if (formContatiner.classList.contains("d-none")) {
+                formContatiner.classList.remove("d-none")
+                addButton.classList.remove("btn-info")
+                addButton.classList.add("btn-secondary")
+                addButton.innerHTML = "-"
+            } else {
+                formContatiner.classList.add("d-none")
+                addButton.classList.remove("btn-secondary")
+                addButton.classList.add("btn-info")
+                addButton.innerHTML = "+"
+            }
+        });
+        const form = document.querySelector('form');
+        
+        form.addEventListener('submit', submitForm);
+        
+        function submitForm(e){
+            e.preventDefault();
+            console.log("save-the-world")
+        }
+
+        ipcRenderer.on('item:add', function(e, item){
+            const tr = document.createElement('tr');
+            const image = document.createElement('td');
+            const name = document.createElement('td');
+            const description = document.createElement('td');
+            
+            const imageText = document.createTextNode("No Image");
+            const nameText = document.createTextNode(item.name);
+            const descriptionText = document.createTextNode(item.description);
+            
+            image.appendChild(imageText);
+            name.appendChild(nameText);
+            description.appendChild(descriptionText);
+            
+            tr.appendChild(image);
+            tr.appendChild(name);
+            tr.appendChild(description);
+            
+            table.appendChild(tr);
+            console.log(item)
+        });
+
+        ipcRenderer.send("mainWindowLoaded");
+    </script>
+</body>
+</html>
